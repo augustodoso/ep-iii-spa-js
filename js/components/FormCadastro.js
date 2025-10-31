@@ -14,7 +14,8 @@ export function initFormCadastro(root) {
   const confirm = $("#confirm", form);
   const limpar = $("#limpar", form);
   const status = $("#form-status", form);
-  const lista = $("#lista-usuarios", root);
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
 
   const rules = {
     nome: [isRequired],
@@ -27,8 +28,17 @@ export function initFormCadastro(root) {
 
   function showError(input, msg) {
     const box = root.querySelector(`[data-error-for="${input.id}"]`);
-    if (box) box.textContent = msg || "";
-    input.setAttribute("aria-invalid", msg ? "true" : "false");
+    if (box) {
+      box.textContent = msg || "";
+      box.id = `${input.id}-error`;
+    }
+    if (msg) {
+      input.setAttribute("aria-invalid", "true");
+      input.setAttribute("aria-describedby", `${input.id}-error`);
+    } else {
+      input.removeAttribute("aria-invalid");
+      input.removeAttribute("aria-describedby");
+    }
   }
 
   function validateField(input) {
@@ -38,36 +48,35 @@ export function initFormCadastro(root) {
     return !msg;
   }
 
-  // Validação ao digitar/sair do campo
   ["input", "change", "blur"].forEach(evt => {
     form.addEventListener(evt, (e) => {
       const target = e.target;
       if (target.name in rules) validateField(target);
-      // consistência dinâmica: confirmação acompanha senha
       if (target === senha && confirm.value) validateField(confirm);
     });
   });
 
-  // Submissão
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const fields = [nome, email, nasc, perfil, senha, confirm];
-    const ok = fields.map(validateField).every(Boolean);
+    const results = fields.map(inp => ({ inp, ok: validateField(inp) }));
+    const allOk = results.every(r => r.ok);
 
-    // checagens de consistência extra
-    // Ex.: se perfil = mentor, idade mínima 18 (além dos 16 gerais)
-    if (ok && perfil.value === "mentor") {
+    // regra extra mentor >= 18
+    if (allOk && perfil.value === "mentor") {
       const d = new Date(nasc.value);
       const today = new Date();
       const age = today.getFullYear() - d.getFullYear()
         - ((today.getMonth() < d.getMonth() || (today.getMonth() === d.getMonth() && today.getDate() < d.getDate())) ? 1 : 0);
       if (age < 18) {
         showError(nasc, "Para perfil Mentor, idade mínima é 18 anos.");
-        return;
+        results.find(r => r.inp === nasc).ok = false;
       }
     }
 
-    if (!ok) {
+    if (!results.every(r => r.ok)) {
+      const firstInvalid = results.find(r => !r.ok)?.inp;
+      firstInvalid?.focus(); // foco no primeiro erro
       status.textContent = "Há campos com erro. Corrija-os para continuar.";
       return;
     }
@@ -83,9 +92,7 @@ export function initFormCadastro(root) {
     storage.add(user);
     status.textContent = "Cadastro realizado com sucesso!";
     form.reset();
-    // limpa erros visuais
     $$("#form-cadastro [data-error-for]").forEach(el => el.textContent = "");
-    renderLista();
   });
 
   limpar.addEventListener("click", () => {
@@ -93,18 +100,4 @@ export function initFormCadastro(root) {
     status.textContent = "Campos limpos.";
     $$("#form-cadastro [data-error-for]").forEach(el => el.textContent = "");
   });
-
-  function renderLista() {
-    const users = storage.getAll();
-    lista.innerHTML = users.length
-      ? users.map(u => `
-        <div class="card">
-          <strong>${u.nome}</strong> — <span class="badge">${u.perfil}</span><br />
-          <small>${u.email}</small><br />
-          <small>Criado em: ${new Date(u.createdAt).toLocaleString("pt-BR")}</small>
-        </div>
-      `).join("")
-      : `<p class="hint">Nenhum usuário cadastrado ainda.</p>`;
-  }
-  renderLista();
 }

@@ -1,0 +1,27 @@
+{
+  "name": "sua-app-spa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SPA EP III/IV - JS + A11y + build",
+  "scripts": {
+    "copy:assets": "shx cp -r assets docs/assets",
+    "build": "npm run clean && npm run min:html && npm run min:css && npm run min:js && npm run copy:assets",
+    "copy:assets": "shx cp -r assets docs/assets",
+    "build": "npm run clean && npm run min:html && npm run min:css && npm run min:js && npm run copy:assets",
+    "clean": "shx rm -rf docs && shx mkdir -p docs",
+    "copy": "shx cp -r assets docs/ && shx cp -r js docs/ && shx cp index.html docs/index.html",
+    "min:html": "html-minifier-terser docs/index.html -o docs/index.html --collapse-whitespace --remove-comments --minify-js true --minify-css true",
+    "min:css": "cleancss -o docs/assets/css/styles.css docs/assets/css/styles.css",
+    "min:js": "terser docs/js/main.js --compress --mangle --module -o docs/js/main.js && terser docs/js/router.js --compress --mangle --module -o docs/js/router.js && terser docs/js/state.js --compress --mangle --module -o docs/js/state.js && terser docs/js/storage.js --compress --mangle --module -o docs/js/storage.js && terser docs/js/validators.js --compress --mangle --module -o docs/js/validators.js && terser docs/js/templates.js --compress --mangle --module -o docs/js/templates.js && terser docs/js/components/Nav.js --compress --mangle --module -o docs/js/components/Nav.js && terser docs/js/components/FormCadastro.js --compress --mangle --module -o docs/js/components/FormCadastro.js && terser docs/js/utils/dom.js --compress --mangle --module -o docs/js/utils/dom.js",
+    "build": "npm run clean && npm run copy && npm run min:html && npm run min:css && npm run min:js"
+  },
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "html-minifier-terser": "^7.2.0",
+    "shx": "^0.3.4",
+    "terser": "^5.36.0"
+  }
+}
+
+
+

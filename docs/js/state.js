@@ -1,0 +1,1 @@
+export const state={route:location.hash.replace("#","")||"home",setRoute(t){this.route=t}};

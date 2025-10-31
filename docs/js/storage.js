@@ -1,0 +1,1 @@
+const e="spa_ep3_users_v1";export const storage={getAll(){const t=localStorage.getItem(e);return t?JSON.parse(t):[]},saveAll(t){localStorage.setItem(e,JSON.stringify(t))},add(e){const t=storage.getAll();t.push(e),storage.saveAll(t)},emailExists:e=>storage.getAll().some(t=>t.email.toLowerCase()===e.toLowerCase())};
